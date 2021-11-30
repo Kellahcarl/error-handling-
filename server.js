@@ -1,6 +1,10 @@
 const { json } = require("express");
 const express = require("express");
-const fs = require("fs");
+const fs = require( "fs" );
+
+const sgMail = require( "@sendgrid/mail" );
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 const port = 3000;
 
 class Application {
@@ -139,6 +143,25 @@ class Application {
     });
 
     // - send an alert to email using sendgrid, and call next error handler
+
+    this.#app.use((err, req, res, next) => {
+      const msg = {
+        to: "jonathan.mwaniki@thejitu.com", // Change to your recipient
+        from: "caleb.baraka@thejitu.com", // Change to your verified sender
+        subject: "ERROR",
+        text: "Sorry for the inconviniences",
+        html: "<strong>The issue will be sorted out soon.</strong>",
+      };
+      sgMail
+        .send(msg)
+        .then(() => {
+          console.log("Email sent");
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      next(err);
+    });
 
     // not found error
     this.#app.use((err, req, res, next) => {
